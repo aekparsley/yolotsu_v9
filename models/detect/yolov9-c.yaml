@@ -61,7 +61,9 @@ head:
    [[-1, 5], 1, Concat, [1]],  # cat backbone P3
 
    # elan-2 block
-   [-1, 1, RepNCSPELAN4, [256, 256, 128, 1]],  # 16 (P3/8-small)
+   # [-1, 1, RepNCSPELAN4, [256, 256, 128, 1]],  # 16 (P3/8-small)
+    [-1, 1, Gelotsu, [ 256, 256, 128, 1]],  # 16 (P3/8-small)
+    #[-1, 1, Conv, [64, 3, 1]],
 
    # avg-conv-down merge
    [-1, 1, ADown, [256]],
@@ -121,4 +123,5 @@ head:
 
    # detect
    [[31, 34, 37, 16, 19, 22], 1, DualDDetect, [nc]],  # DualDDetect(A3, A4, A5, P3, P4, P5)
+    #[[32, 35, 38, 16, 20, 23], 1, DualDDetect, [nc]],  # DualDDetect(A3, A4, A5, P3, P4, P5)
   ]

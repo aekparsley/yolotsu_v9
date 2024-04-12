@@ -9,15 +9,17 @@ from collections import OrderedDict, namedtuple
 from copy import copy
 from pathlib import Path
 from urllib.parse import urlparse
-
+from skimage.filters import threshold_otsu
 from typing import Optional
 
+import torch
+import torch.nn as nn
+import torchvision.transforms as transforms
+import skimage.filters
 import cv2
 import numpy as np
 import pandas as pd
 import requests
-import torch
-import torch.nn as nn
 from IPython.display import display
 from PIL import Image
 from torch.cuda import amp
@@ -596,6 +598,52 @@ class RepNCSPELAN4(nn.Module):
         y = list(self.cv1(x).split((self.c, self.c), 1))
         y.extend(m(y[-1]) for m in [self.cv2, self.cv3])
         return self.cv4(torch.cat(y, 1))
+
+class Gelotsu(nn.Module):
+    def __init__(self, c1, c2, c3, c4, c5=1):
+        super().__init__()
+        self.c = c3 // 2
+        # Adjusting the number of input channels for cv1 and cv4
+        self.cv1 = Conv(c1, c3 // 2, 1, 1)
+        self.cv2 = nn.Sequential(RepNCSP(c3 // 2, c4, c5), Conv(c4, c4, 3, 1))
+        self.cv3 = nn.Sequential(RepNCSP(c4, c4, c5), Conv(c4, c4, 3, 1))
+        # Adjusting the number of input channels for cv4
+        self.cv4 = Conv(c3 + (2 * c4), c2, 1, 1)
+
+    def forward(self, x):
+    # Convert PyTorch tensor to numpy array
+        x_gray = x.detach().cpu().numpy()
+        threshold_value = threshold_otsu(x_gray)
+        thresholded = (x_gray > threshold_value).astype(np.float32) * 255
+        x = torch.from_numpy(thresholded).to(x.device)
+        return x
+
+
+    # def forward(self, x):
+    #     y = list(self.cv1(x).chunk(2, 1))
+    #     y.extend((m(y[-1])) for m in [self.cv2, self.cv3])
+    #     return self.cv4(torch.cat(y, 1))
+
+    # def forward_split(self, x):
+    #     y = list(self.cv1(x).split((self.c, self.c), 1))
+    #     y.extend(m(y[-1]) for m in [self.cv2, self.cv3])
+    #     return self.cv4(torch.cat(y, 1))
+
+    # def forward(self, x):
+    #     y = list(self.cv1(x).chunk(2, 1))
+    #     y.extend((m(y[-1])) for m in [self.cv2, self.cv3])
+    #     segmented_x = self.segment_otsu(x)
+    #     return self.cv4(torch.cat(y + [segmented_x], 1))
+
+    # def forward_split(self, x):
+    #     y = list(self.cv1(x).split((self.c, self.c), 1))
+    #     y.extend(m(y[-1]) for m in [self.cv2, self.cv3])
+    #     segmented_x = self.segment_otsu(x)
+    #     return self.cv4(torch.cat(y + [segmented_x], 1))
+
+
+
+
 
 #################
 
