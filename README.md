@@ -217,16 +217,6 @@ python detect.py --source './data/images/horses.jpg' --img 640 --device 0 --weig
 ```
 
 
-## Teaser
-
-Parts of code of [YOLOR-Based Multi-Task Learning](https://arxiv.org/abs/2309.16921) are released in the repository.
-
-<div align="center">
-    <a href="./">
-        <img src="./figure/multitask.png" width="99%"/>
-    </a>
-</div>
-
 #### Object Detection
 
 ``` shell
